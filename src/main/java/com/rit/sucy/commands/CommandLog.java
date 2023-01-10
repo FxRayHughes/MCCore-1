@@ -68,6 +68,11 @@ public class CommandLog implements CommandSender
     }
 
     @Override
+    public Spigot spigot() {
+        return null;
+    }
+
+    @Override
     public boolean isPermissionSet(String s)
     {
         return true;

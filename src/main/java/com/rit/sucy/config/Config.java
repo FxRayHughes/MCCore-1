@@ -1,21 +1,21 @@
 /**
  * MCCore
  * com.rit.sucy.config.Config
- *
+ * <p>
  * The MIT License (MIT)
- *
+ * <p>
  * Copyright (c) 2014 Steven Sucy
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software") to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,15 +26,13 @@
  */
 package com.rit.sucy.config;
 
-import jdk.internal.util.xml.impl.ReaderUTF8;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -45,14 +43,13 @@ import java.util.logging.Level;
  * Slightly modified version of the one from the bukkit tutorial
  * Source: http://wiki.bukkit.org/Configuration_API_Reference
  */
-public class Config
-{
+public class Config {
 
     private final HashMap<ISavable, String> savables = new HashMap<ISavable, String>();
-    private final String     fileName;
+    private final String fileName;
     private final JavaPlugin plugin;
 
-    private File              configFile;
+    private File configFile;
     private FileConfiguration fileConfiguration;
 
     /**
@@ -61,36 +58,30 @@ public class Config
      * @param plugin plugin reference
      * @param name   file name
      */
-    public Config(JavaPlugin plugin, String name)
-    {
+    public Config(JavaPlugin plugin, String name) {
         this.plugin = plugin;
         this.fileName = name + ".yml";
 
         // Setup the path
         this.configFile = new File(plugin.getDataFolder().getAbsolutePath() + "/" + fileName);
-        try
-        {
+        try {
             String path = configFile.getAbsolutePath();
             if (new File(path.substring(0, path.lastIndexOf(File.separator))).mkdirs())
                 plugin.getLogger().info("Created a new folder for config files");
-        }
-        catch (Exception e)
-        { /* */ }
+        } catch (Exception e) { /* */ }
     }
 
     /**
      * @return plugin owning this config file
      */
-    public JavaPlugin getPlugin()
-    {
+    public JavaPlugin getPlugin() {
         return plugin;
     }
 
     /**
      * @return name of the file this config saves to
      */
-    public String getFile()
-    {
+    public String getFile() {
         return fileName.replace(".yml", "");
     }
 
@@ -100,20 +91,16 @@ public class Config
      * the changes to be reflected in the actual file,
      * call the saveConfig() method after doing this.</p>
      */
-    public void clear()
-    {
+    public void clear() {
         clear(getConfig());
     }
 
     /**
      * Saves if there are savables added
      */
-    public void save()
-    {
-        if (savables.size() > 0)
-        {
-            for (Map.Entry<ISavable, String> entry : savables.entrySet())
-            {
+    public void save() {
+        if (savables.size() > 0) {
+            for (Map.Entry<ISavable, String> entry : savables.entrySet()) {
                 entry.getKey().save(getConfig(), entry.getValue());
             }
         }
@@ -126,8 +113,7 @@ public class Config
      * @param savable  savable object
      * @param basePath base path for it
      */
-    public void addSavable(ISavable savable, String basePath)
-    {
+    public void addSavable(ISavable savable, String basePath) {
         this.savables.put(savable, basePath);
     }
 
@@ -136,10 +122,8 @@ public class Config
      *
      * @param savable savable to delete
      */
-    public void deleteSavable(ISavable savable)
-    {
-        if (savables.containsKey(savable))
-        {
+    public void deleteSavable(ISavable savable) {
+        if (savables.containsKey(savable)) {
             String base = savables.get(savable);
             if (base.length() > 0 && base.charAt(base.length() - 1) == '.')
                 base = base.substring(0, base.length() - 1);
@@ -151,13 +135,13 @@ public class Config
     /**
      * Reloads the config
      */
-    public void reloadConfig()
-    {
+    public void reloadConfig() {
         fileConfiguration = YamlConfiguration.loadConfiguration(configFile);
         InputStream defConfigStream = plugin.getResource(fileName);
-        if (defConfigStream != null)
-        {
-            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(new ReaderUTF8(defConfigStream));
+        if (defConfigStream != null) {
+            InputStreamReader isr = new InputStreamReader(defConfigStream, StandardCharsets.UTF_8);
+            BufferedReader read = new BufferedReader(isr);
+            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(read);
             fileConfiguration.setDefaults(defConfig);
         }
     }
@@ -165,10 +149,8 @@ public class Config
     /**
      * @return config file
      */
-    public FileConfiguration getConfig()
-    {
-        if (fileConfiguration == null)
-        {
+    public FileConfiguration getConfig() {
+        if (fileConfiguration == null) {
             this.reloadConfig();
         }
         return fileConfiguration;
@@ -179,24 +161,18 @@ public class Config
      *
      * @return the file of the configuration
      */
-    public File getConfigFile()
-    {
+    public File getConfigFile() {
         return configFile;
     }
 
     /**
      * Saves the config
      */
-    public void saveConfig()
-    {
-        if (fileConfiguration != null || configFile != null)
-        {
-            try
-            {
+    public void saveConfig() {
+        if (fileConfiguration != null || configFile != null) {
+            try {
                 getConfig().save(configFile);
-            }
-            catch (IOException ex)
-            {
+            } catch (IOException ex) {
                 plugin.getLogger().log(Level.SEVERE, "Could not save config to " + configFile, ex);
             }
         }
@@ -205,14 +181,11 @@ public class Config
     /**
      * Saves the default config if no file exists yet
      */
-    public void saveDefaultConfig()
-    {
-        if (configFile == null)
-        {
+    public void saveDefaultConfig() {
+        if (configFile == null) {
             configFile = new File(plugin.getDataFolder().getAbsolutePath() + "/" + fileName);
         }
-        if (!configFile.exists())
-        {
+        if (!configFile.exists()) {
             this.plugin.saveResource(fileName, false);
         }
     }
@@ -226,8 +199,7 @@ public class Config
      * more for making sure users do not erase needed values
      * from settings configs.</p>
      */
-    public void checkDefaults()
-    {
+    public void checkDefaults() {
         ConfigurationSection config = getConfig();
         setDefaults(config);
         saveConfig();
@@ -238,8 +210,7 @@ public class Config
      * <p>Any values that weren't in the default configuration are removed</p>
      * <p>This is primarily used for settings configs </p>
      */
-    public void trim()
-    {
+    public void trim() {
         ConfigurationSection config = getConfig();
         trim(config);
         saveConfig();
@@ -251,12 +222,10 @@ public class Config
      * copied over so that user changes aren't overwritten.</p>
      *
      * @param config config section to set the defaults for
-     *
      * @deprecated use FileConfiguration.options().copyDefaults(true) instead
      */
     @Deprecated
-    public static void setDefaults(ConfigurationSection config)
-    {
+    public static void setDefaults(ConfigurationSection config) {
     }
 
     /**
@@ -265,31 +234,23 @@ public class Config
      *
      * @param config configuration section to trim
      */
-    public static void trim(ConfigurationSection config)
-    {
-        if (config.getDefaultSection() != null)
-        {
+    public static void trim(ConfigurationSection config) {
+        if (config.getDefaultSection() != null) {
             ConfigurationSection d = config.getDefaultSection();
-            for (String key : config.getKeys(false))
-            {
+            for (String key : config.getKeys(false)) {
 
                 // If the default section doesn't contain the key, remove it
-                if (!d.contains(key))
-                {
+                if (!d.contains(key)) {
                     config.set(key, null);
                 }
 
                 // Recursively set the defaults for the inner sections
-                else if (config.isConfigurationSection(key))
-                {
+                else if (config.isConfigurationSection(key)) {
                     trim(config.getConfigurationSection(key));
                 }
             }
-        }
-        else
-        {
-            for (String key : config.getKeys(false))
-            {
+        } else {
+            for (String key : config.getKeys(false)) {
                 config.set(key, null);
             }
         }
@@ -301,10 +262,8 @@ public class Config
      * the changes to be reflected in the actual file,
      * call the saveConfig() method after doing this.</p>
      */
-    public static void clear(ConfigurationSection config)
-    {
-        for (String key : config.getKeys(false))
-        {
+    public static void clear(ConfigurationSection config) {
+        for (String key : config.getKeys(false)) {
             config.set(key, null);
         }
     }

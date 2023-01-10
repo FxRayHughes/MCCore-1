@@ -1,21 +1,21 @@
 /**
  * MCCore
  * com.rit.sucy.config.parse.JSONParser
- *
+ * <p>
  * The MIT License (MIT)
- *
+ * <p>
  * Copyright (c) 2014 Steven Sucy
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software") to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,22 +26,18 @@
  */
 package com.rit.sucy.config.parse;
 
-import com.sun.xml.internal.fastinfoset.Encoder;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  * Custom parser for JSON that doesn't trim whitespace or newlines
  * as it is meant for storing data, not for super readable files.
  */
-public class JSONParser
-{
+public class JSONParser {
     private static int i = 0;
 
     /**
@@ -54,25 +50,20 @@ public class JSONParser
      *
      * @return loaded data
      */
-    public static DataSection parseResource(Plugin plugin, String path)
-    {
-        try
-        {
+    public static DataSection parseResource(Plugin plugin, String path) {
+        try {
             InputStream read = plugin.getClass().getResourceAsStream("/" + path);
             StringBuilder builder = new StringBuilder();
             byte[] data = new byte[1024];
             int bytes;
-            do
-            {
+            do {
                 bytes = read.read(data);
                 builder.append(new String(data, 0, bytes, "UTF-8"));
             }
             while (bytes == 1024);
             read.close();
             return parseText(builder.toString());
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             // Do nothing
             Bukkit.getLogger().info("Failed to parse resource (" + path + ") - " + ex.getMessage());
         }
@@ -88,8 +79,7 @@ public class JSONParser
      *
      * @return loaded data
      */
-    public static DataSection parseFile(String path)
-    {
+    public static DataSection parseFile(String path) {
         return parseFile(new File(path));
     }
 
@@ -102,21 +92,16 @@ public class JSONParser
      *
      * @return loaded data
      */
-    public static DataSection parseFile(File file)
-    {
-        try
-        {
-            if (file.exists())
-            {
+    public static DataSection parseFile(File file) {
+        try {
+            if (file.exists()) {
                 FileInputStream read = new FileInputStream(file);
                 byte[] data = new byte[(int) file.length()];
                 read.read(data);
                 read.close();
                 return parseText(new String(data, "UTF-8"));
             }
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             // Do nothing
             ex.printStackTrace();
         }
@@ -131,8 +116,7 @@ public class JSONParser
      *
      * @return parsed data
      */
-    public static DataSection parseText(String text)
-    {
+    public static DataSection parseText(String text) {
         if (text == null) return new DataSection();
         i = 0;
         return parse(text);
@@ -145,13 +129,11 @@ public class JSONParser
      *
      * @return parsed data
      */
-    private static DataSection parse(String text)
-    {
+    private static DataSection parse(String text) {
         DataSection data = new DataSection();
 
         if (text.charAt(i) != '{') return data;
-        if (text.charAt(i + 1) == '}')
-        {
+        if (text.charAt(i + 1) == '}') {
             i += 2;
             return data;
         }
@@ -159,8 +141,7 @@ public class JSONParser
         Object value;
         String key;
         int next, end;
-        while (text.charAt(i) != '}')
-        {
+        while (text.charAt(i) != '}') {
             i++;
 
             next = text.indexOf(':', i);
@@ -172,8 +153,7 @@ public class JSONParser
                 key = text.substring(i, next);
 
             // Grab value
-            switch (text.charAt(next + 1))
-            {
+            switch (text.charAt(next + 1)) {
                 case '{':
                     i = next + 1;
                     value = parse(text);
@@ -208,26 +188,22 @@ public class JSONParser
      *
      * @return parsed data
      */
-    private static DataArray parseArray(String text)
-    {
+    private static DataArray parseArray(String text) {
         DataArray array = new DataArray();
 
         if (text.charAt(i) != '[') return array;
-        if (text.charAt(i) == ']')
-        {
+        if (text.charAt(i) == ']') {
             i += 2;
             return array;
         }
 
         Object value;
         int end;
-        while (text.charAt(i) != ']')
-        {
+        while (text.charAt(i) != ']') {
             i++;
 
             // Grab value
-            switch (text.charAt(i))
-            {
+            switch (text.charAt(i)) {
                 case '{':
                     value = parse(text);
                     break;
@@ -260,12 +236,9 @@ public class JSONParser
      * @param index   index to start searching at
      * @return terminating character index
      */
-    private static int next(String text, int index)
-    {
-        while (true)
-        {
-            switch (text.charAt(index))
-            {
+    private static int next(String text, int index) {
+        while (true) {
+            switch (text.charAt(index)) {
                 case ',':
                     return index;
                 case ']':
@@ -282,8 +255,7 @@ public class JSONParser
      *
      * @param path path to the file
      */
-    public static void save(DataSection data, String path)
-    {
+    public static void save(DataSection data, String path) {
         save(data, new File(path));
     }
 
@@ -292,19 +264,15 @@ public class JSONParser
      *
      * @param file file to dump to
      */
-    public static void save(DataSection data, File file)
-    {
-        try
-        {
+    public static void save(DataSection data, File file) {
+        try {
             FileOutputStream out = new FileOutputStream(file);
-            BufferedWriter write = new BufferedWriter(new OutputStreamWriter(out, Encoder.UTF_8));
+            BufferedWriter write = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
 
             save(data, write);
 
             write.close();
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
@@ -316,8 +284,7 @@ public class JSONParser
      *
      * @throws IOException
      */
-    public static void save(DataSection data, BufferedWriter write) throws IOException
-    {
+    public static void save(DataSection data, BufferedWriter write) throws IOException {
         StringBuilder sb = new StringBuilder();
         dump(data, sb);
         write.write(sb.toString());
@@ -329,12 +296,10 @@ public class JSONParser
      * @param data    data to dump
      * @param builder string builder to use
      */
-    public static void dump(DataSection data, StringBuilder builder)
-    {
+    public static void dump(DataSection data, StringBuilder builder) {
         builder.append('{');
         boolean first = true;
-        for (Map.Entry<String, Object> entry : data.entrySet())
-        {
+        for (Map.Entry<String, Object> entry : data.entrySet()) {
             if (first) first = false;
             else builder.append(',');
             builder.append(entry.getKey());
@@ -350,22 +315,18 @@ public class JSONParser
      * @param builder builder to write to
      * @param value   value to write
      */
-    private static void writeValue(StringBuilder builder, Object value)
-    {
+    private static void writeValue(StringBuilder builder, Object value) {
         // Sections
-        if (value instanceof DataSection)
-        {
-            dump((DataSection)value, builder);
+        if (value instanceof DataSection) {
+            dump((DataSection) value, builder);
         }
 
         // Arrays
-        else if (value instanceof DataArray)
-        {
+        else if (value instanceof DataArray) {
             builder.append('[');
             boolean first = true;
-            DataArray array = (DataArray)value;
-            for (int i = 0; i < array.size(); i++)
-            {
+            DataArray array = (DataArray) value;
+            for (int i = 0; i < array.size(); i++) {
                 if (first) first = false;
                 else builder.append(',');
                 writeValue(builder, array.get(i));
@@ -374,16 +335,14 @@ public class JSONParser
         }
 
         // Strings that need quotes
-        else if (value.toString().contains(":"))
-        {
+        else if (value.toString().contains(":")) {
             builder.append('"');
             builder.append(value.toString());
             builder.append('"');
         }
 
         // Strings and numbers that don't need quotes
-        else
-        {
+        else {
             builder.append(value.toString());
         }
     }
